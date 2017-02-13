@@ -69,8 +69,6 @@ import dk.dr.radio.vaekning.AlarmAlertWakeLock;
  */
 public class Afspiller {
 
-  private final GemiusStatistik gemiusStatistik;
-
   class Afspillerlyd {
     MediaPlayer start;
     MediaPlayer fejl;
@@ -155,7 +153,6 @@ public class Afspiller {
     }.start();
     */
     if (App.fejlsøgning) tjekLydAktiv.run();
-    gemiusStatistik = new GemiusStatistik();
   }
 
   private int onErrorTæller;
@@ -371,7 +368,6 @@ public class Afspiller {
             return;
           }
           lydstream = bs.get(0);
-          gemiusStatistik.setLydkilde(lydkilde);
           DRData.instans.senestLyttede.registrérLytning(lydkilde);
           Log.d("mediaPlayer.setDataSource( " + lydstream);
 
@@ -436,7 +432,6 @@ public class Afspiller {
       App.instans.unregisterReceiver(hovedtelefonFjernetReciever);
     }
     if (wifilock != null) wifilock.release();
-    gemiusStatistik.registérHændelse(GemiusStatistik.PlayerAction.Pause, pos / 1000);
     if (vækkeurWakeLock != null) {
       vækkeurWakeLock.release();
       vækkeurWakeLock = null;
@@ -462,7 +457,6 @@ public class Afspiller {
 
   synchronized public void stopAfspilning() {
     Log.d("Afspiller stopAfspilning");
-    gemiusStatistik.registérHændelse(GemiusStatistik.PlayerAction.Stopped, getCurrentPosition() / 1000);
     Sidevisning.vist("afspilning_stop");
     gemPosition();
     pauseAfspilningIntern();
@@ -585,7 +579,6 @@ public class Afspiller {
   public void seekTo(long offsetMs) {
     Log.d("afspiler seekTo " + offsetMs);
     mediaPlayer.seekTo(offsetMs);
-    gemiusStatistik.registérHændelse(GemiusStatistik.PlayerAction.Seeking, offsetMs / 1000);
     for (Runnable runnable : positionsobservatører) {
       runnable.run();
     }
@@ -690,7 +683,6 @@ public class Afspiller {
               Log.d("mediaPlayer nej, det er for langt henne, starter ved starten");
               startposition = 0;
             }
-            gemiusStatistik.registérHændelse(GemiusStatistik.PlayerAction.Play, startposition / 1000);
             if (startposition > 0) {
               if (mediaPlayer instanceof ExoPlayerWrapper) {
                 Log.d("exoplayer.seekTo() er slået fra - TODO fix"); //TODO fix
@@ -702,9 +694,6 @@ public class Afspiller {
             if (afspillerlyde) afspillerlyd.spiller.start();
             Log.d("mediaPlayer.start() slut " + mpTils());
             Thread.sleep(5000); // Vent lidt før data sendes
-            if (App.netværk.erOnline()) {
-              gemiusStatistik.startSendData();
-            } // Ellers venter vi, det kan være vi er heldige at brugeren er online ved næste hændelse
           } catch (Exception e) {
             Log.rapporterFejl(e);
           }
@@ -743,7 +732,6 @@ public class Afspiller {
           if (afspillerlyde) afspillerlyd.forbinder.start();
         } else {
           DRData.instans.senestLyttede.sætStartposition(lydkilde, 0);
-          gemiusStatistik.registérHændelse(GemiusStatistik.PlayerAction.Completed, getCurrentPosition() / 1000);
           stopAfspilning();
         }
       }
