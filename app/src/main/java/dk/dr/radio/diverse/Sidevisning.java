@@ -2,8 +2,6 @@ package dk.dr.radio.diverse;
 
 import android.content.Intent;
 
-import com.gemius.sdk.MobilePlugin;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
@@ -78,7 +76,6 @@ public class Sidevisning {
     m.put(Integer.class, KONTAKT_SKRIV); // bare en eller anden unik klasse - det er værdien der skal bruges
   }
   private final static HashSet<String> besøgt = new HashSet<String>();
-  private static Intent intent;
 
   public void vist(String side, String slug) {
     //if (!App.PRODUKTION) App.kortToast("vist "+side+" "+slug);
@@ -96,16 +93,6 @@ public class Sidevisning {
 
   private void sendTilGemius(String data) {
     if (App.fejlsøgning || App.EMULATOR) Log.d("sendTilGemius "+data);
-    if (intent==null) {
-      String nøgle = App.instans.getString(R.string.gemius_sidevisninsstatistik_nøgle);
-      if (nøgle.length()==0) return; // Nøgle til indrapportering mangler
-      if (!App.prefs.getBoolean("Rapportér statistik", true)) return; // statistikrapportering fravalgt
-      intent = new Intent(App.instans, MobilePlugin.class);
-      intent.putExtra(MobilePlugin.IDENTIFIER, nøgle);
-      intent.putExtra(MobilePlugin.SERVERPREFIX, "main");
-    }
-    intent.putExtra(MobilePlugin.EXTRAPARAMS, data);
-    App.instans.startService(intent);
   }
 
   public static void vist(Class fk, String slug) {
